@@ -12,10 +12,10 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { label: 'Marketplace', href: '/homepage', icon: 'HomeIcon' },
-    { label: 'Products', href: '/product-search-results', icon: 'MagnifyingGlassIcon' },
-    { label: 'Buyer', href: '/buyer-dashboard', icon: 'ShoppingCartIcon', requiresAuth: true },
-    { label: 'Seller', href: '/seller-dashboard', icon: 'BuildingStorefrontIcon', requiresAuth: true },
+    { label: 'Accueil', href: '/homepage', icon: 'HomeIcon' },
+    { label: 'Produits', href: '/product-search-results', icon: 'MagnifyingGlassIcon' },
+    { label: 'Espace Acheteur', href: '/buyer-dashboard', icon: 'ShoppingCartIcon', requiresAuth: true },
+    { label: 'Espace Vendeur', href: '/seller-dashboard', icon: 'BuildingStorefrontIcon', requiresAuth: true },
   ];
 
   return (
