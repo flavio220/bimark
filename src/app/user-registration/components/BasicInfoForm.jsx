@@ -3,240 +3,203 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Icon from '@/components/ui/AppIcon';
+import PhoneInput from '@/components/ui/PhoneInput';
+import CountrySelect from '@/components/ui/CountrySelect';
 
-export default function BasicInfoForm({ formData, onFormChange, translations }) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+const T = {
+  fr: {
+    firstName: 'Prénom', lastName: 'Nom de famille', email: 'Adresse email',
+    password: 'Mot de passe', confirmPassword: 'Confirmer le mot de passe',
+    phone: 'Numéro de téléphone', country: 'Pays de résidence',
+    firstNamePh: 'Votre prénom', lastNamePh: 'Votre nom',
+    emailPh: 'votre@email.com', passwordPh: 'Minimum 8 caractères',
+    confirmPh: 'Répétez le mot de passe',
+    req: 'obligatoire',
+    strength: ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'],
+    show: 'Afficher', hide: 'Masquer',
+  },
+  en: {
+    firstName: 'First name', lastName: 'Last name', email: 'Email address',
+    password: 'Password', confirmPassword: 'Confirm password',
+    phone: 'Phone number', country: 'Country of residence',
+    firstNamePh: 'Your first name', lastNamePh: 'Your last name',
+    emailPh: 'your@email.com', passwordPh: 'Minimum 8 characters',
+    confirmPh: 'Repeat your password',
+    req: 'required',
+    strength: ['Very weak', 'Weak', 'Fair', 'Strong', 'Very strong'],
+    show: 'Show', hide: 'Hide',
+  },
+  es: {
+    firstName: 'Nombre', lastName: 'Apellido', email: 'Correo electrónico',
+    password: 'Contraseña', confirmPassword: 'Confirmar contraseña',
+    phone: 'Número de teléfono', country: 'País de residencia',
+    firstNamePh: 'Tu nombre', lastNamePh: 'Tu apellido',
+    emailPh: 'tu@email.com', passwordPh: 'Mínimo 8 caracteres',
+    confirmPh: 'Repite tu contraseña',
+    req: 'obligatorio',
+    strength: ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'],
+    show: 'Mostrar', hide: 'Ocultar',
+  },
+  pt: {
+    firstName: 'Nome', lastName: 'Sobrenome', email: 'Endereço de email',
+    password: 'Senha', confirmPassword: 'Confirmar senha',
+    phone: 'Número de telefone', country: 'País de residência',
+    firstNamePh: 'Seu nome', lastNamePh: 'Seu sobrenome',
+    emailPh: 'seu@email.com', passwordPh: 'Mínimo 8 caracteres',
+    confirmPh: 'Repita sua senha',
+    req: 'obrigatório',
+    strength: ['Muito fraca', 'Fraca', 'Razoável', 'Forte', 'Muito forte'],
+    show: 'Mostrar', hide: 'Ocultar',
+  },
+  ar: {
+    firstName: 'الاسم الأول', lastName: 'اسم العائلة', email: 'البريد الإلكتروني',
+    password: 'كلمة المرور', confirmPassword: 'تأكيد كلمة المرور',
+    phone: 'رقم الهاتف', country: 'بلد الإقامة',
+    firstNamePh: 'اسمك الأول', lastNamePh: 'اسم عائلتك',
+    emailPh: 'بريدك@الإلكتروني.com', passwordPh: '8 أحرف على الأقل',
+    confirmPh: 'أعد كتابة كلمة المرور',
+    req: 'مطلوب',
+    strength: ['ضعيفة جداً', 'ضعيفة', 'متوسطة', 'قوية', 'قوية جداً'],
+    show: 'إظهار', hide: 'إخفاء',
+  },
+  zh: {
+    firstName: '名', lastName: '姓', email: '电子邮箱',
+    password: '密码', confirmPassword: '确认密码',
+    phone: '电话号码', country: '居住国家',
+    firstNamePh: '您的名字', lastNamePh: '您的姓氏',
+    emailPh: 'your@email.com', passwordPh: '至少8个字符',
+    confirmPh: '重复输入密码',
+    req: '必填',
+    strength: ['非常弱', '弱', '一般', '强', '非常强'],
+    show: '显示', hide: '隐藏',
+  },
+};
 
-  const calculatePasswordStrength = (password) => {
-    let strength = 0;
-    if (password?.length >= 8) strength += 25;
-    if (password?.match(/[a-z]/) && password?.match(/[A-Z]/)) strength += 25;
-    if (password?.match(/[0-9]/)) strength += 25;
-    if (password?.match(/[^a-zA-Z0-9]/)) strength += 25;
-    return strength;
-  };
+function pwStrength(pw) {
+  if (!pw) return 0;
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return Math.min(s, 4);
+}
 
-  const handlePasswordChange = (e) => {
-    const newPassword = e?.target?.value;
-    onFormChange('password', newPassword);
-    setPasswordStrength(calculatePasswordStrength(newPassword));
-  };
+export default function BasicInfoForm({ formData = {}, onFormDataChange, errors = {}, language = 'fr' }) {
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const tl = T[language] || T.fr;
+  const strength = pwStrength(formData.password || '');
+  const strengthColors = ['bg-error', 'bg-error', 'bg-warning', 'bg-success', 'bg-success'];
+  const set = (k, v) => onFormDataChange?.({ ...formData, [k]: v });
 
-  const getStrengthColor = () => {
-    if (passwordStrength <= 25) return 'bg-error';
-    if (passwordStrength <= 50) return 'bg-warning';
-    if (passwordStrength <= 75) return 'bg-accent';
-    return 'bg-success';
-  };
+  const inputCls = (err) =>
+    `w-full px-3 py-2.5 border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth ${err ? 'border-error' : 'border-border'}`;
 
-  const getStrengthLabel = () => {
-    if (passwordStrength <= 25) return translations?.passwordStrength?.weak;
-    if (passwordStrength <= 50) return translations?.passwordStrength?.fair;
-    if (passwordStrength <= 75) return translations?.passwordStrength?.good;
-    return translations?.passwordStrength?.strong;
-  };
+  const Field = ({ label, error, children }) => (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1">{label} <span className="text-error">*</span></label>
+      {children}
+      {error && <p className="text-xs text-error mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} />{error}</p>}
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{translations?.basicInfo}</h2>
-        <p className="text-muted-foreground">{translations?.enterDetails}</p>
+    <div className="space-y-4">
+      {/* Name row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={tl.firstName} error={errors.firstName}>
+          <input value={formData.firstName || ''} onChange={e => set('firstName', e.target.value)}
+            placeholder={tl.firstNamePh} className={inputCls(errors.firstName)} />
+        </Field>
+        <Field label={tl.lastName} error={errors.lastName}>
+          <input value={formData.lastName || ''} onChange={e => set('lastName', e.target.value)}
+            placeholder={tl.lastNamePh} className={inputCls(errors.lastName)} />
+        </Field>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {translations?.firstName} <span className="text-error">*</span>
-          </label>
-          <div className="relative">
-            <Icon
-              name="UserIcon"
-              size={20}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              value={formData?.firstName || ''}
-              onChange={(e) => onFormChange('firstName', e?.target?.value)}
-              placeholder={translations?.firstNamePlaceholder}
-              className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-              required
-            />
-          </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {translations?.lastName} <span className="text-error">*</span>
-          </label>
-          <div className="relative">
-            <Icon
-              name="UserIcon"
-              size={20}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              value={formData?.lastName || ''}
-              onChange={(e) => onFormChange('lastName', e?.target?.value)}
-              placeholder={translations?.lastNamePlaceholder}
-              className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-              required
-            />
-          </div>
-        </div>
-      </div>
+      {/* Email */}
+      <Field label={tl.email} error={errors.email}>
+        <input type="email" value={formData.email || ''} onChange={e => set('email', e.target.value)}
+          placeholder={tl.emailPh} className={inputCls(errors.email)} />
+      </Field>
+
+      {/* Phone */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.email} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="EnvelopeIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="email"
-            value={formData?.email || ''}
-            onChange={(e) => onFormChange('email', e?.target?.value)}
-            placeholder={translations?.emailPlaceholder}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
+        <PhoneInput
+          label={tl.phone}
+          required
+          value={formData.phone || ''}
+          onChange={v => set('phone', v)}
+        />
+        {errors.phone && <p className="text-xs text-error mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} />{errors.phone}</p>}
       </div>
+
+      {/* Country */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.phone} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="PhoneIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="tel"
-            value={formData?.phone || ''}
-            onChange={(e) => onFormChange('phone', e?.target?.value)}
-            placeholder={translations?.phonePlaceholder}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
+        <CountrySelect
+          label={tl.country}
+          required
+          value={formData.country || ''}
+          onChange={v => set('country', v)}
+        />
+        {errors.country && <p className="text-xs text-error mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} />{errors.country}</p>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.password} <span className="text-error">*</span>
-        </label>
+
+      {/* Password */}
+      <Field label={tl.password} error={errors.password}>
         <div className="relative">
-          <Icon
-            name="LockClosedIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
           <input
-            type={showPassword ? 'text' : 'password'}
-            value={formData?.password || ''}
-            onChange={handlePasswordChange}
-            placeholder={translations?.passwordPlaceholder}
-            className="w-full pl-10 pr-12 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
+            type={showPw ? 'text' : 'password'}
+            value={formData.password || ''}
+            onChange={e => set('password', e.target.value)}
+            placeholder={tl.passwordPh}
+            className={`${inputCls(errors.password)} pr-20`}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-smooth"
-          >
-            <Icon name={showPassword ? 'EyeSlashIcon' : 'EyeIcon'} size={20} />
+          <button type="button" onClick={() => setShowPw(!showPw)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary hover:underline font-medium">
+            {showPw ? tl.hide : tl.show}
           </button>
         </div>
-        {formData?.password && (
+        {formData.password && (
           <div className="mt-2">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{translations?.passwordStrength?.label}</span>
-              <span className="text-xs font-medium text-foreground">{getStrengthLabel()}</span>
+            <div className="flex gap-1 mb-1">
+              {[0,1,2,3,4].map(i => (
+                <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength ? strengthColors[strength] : 'bg-muted'}`} />
+              ))}
             </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all ${getStrengthColor()}`}
-                style={{ width: `${passwordStrength}%` }}
-              />
-            </div>
+            <p className={`text-xs font-medium ${strength >= 3 ? 'text-success' : strength >= 2 ? 'text-warning' : 'text-error'}`}>
+              {tl.strength[strength]}
+            </p>
           </div>
         )}
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.confirmPassword} <span className="text-error">*</span>
-        </label>
+      </Field>
+
+      {/* Confirm Password */}
+      <Field label={tl.confirmPassword} error={errors.confirmPassword}>
         <div className="relative">
-          <Icon
-            name="LockClosedIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
           <input
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={formData?.confirmPassword || ''}
-            onChange={(e) => onFormChange('confirmPassword', e?.target?.value)}
-            placeholder={translations?.confirmPasswordPlaceholder}
-            className="w-full pl-10 pr-12 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
+            type={showConfirm ? 'text' : 'password'}
+            value={formData.confirmPassword || ''}
+            onChange={e => set('confirmPassword', e.target.value)}
+            placeholder={tl.confirmPh}
+            className={`${inputCls(errors.confirmPassword)} pr-20`}
           />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-smooth"
-          >
-            <Icon name={showConfirmPassword ? 'EyeSlashIcon' : 'EyeIcon'} size={20} />
+          <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary hover:underline font-medium">
+            {showConfirm ? tl.hide : tl.show}
           </button>
         </div>
-        {formData?.confirmPassword && formData?.password !== formData?.confirmPassword && (
-          <p className="mt-1 text-xs text-error flex items-center space-x-1">
-            <Icon name="ExclamationCircleIcon" size={14} />
-            <span>{translations?.passwordMismatch}</span>
+        {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
+          <p className="text-xs text-success mt-1 flex items-center gap-1">
+            <Icon name="CheckCircleIcon" size={12} />
+            {language === 'fr' ? 'Mots de passe identiques' : language === 'es' ? 'Contraseñas iguales' : language === 'pt' ? 'Senhas iguais' : language === 'ar' ? 'كلمتا المرور متطابقتان' : language === 'zh' ? '密码匹配' : 'Passwords match'}
           </p>
         )}
-      </div>
+      </Field>
     </div>
   );
 }
 
-BasicInfoForm.propTypes = {
-  formData: PropTypes?.shape({
-    firstName: PropTypes?.string,
-    lastName: PropTypes?.string,
-    email: PropTypes?.string,
-    phone: PropTypes?.string,
-    password: PropTypes?.string,
-    confirmPassword: PropTypes?.string
-  })?.isRequired,
-  onFormChange: PropTypes?.func?.isRequired,
-  translations: PropTypes?.shape({
-    basicInfo: PropTypes?.string?.isRequired,
-    enterDetails: PropTypes?.string?.isRequired,
-    firstName: PropTypes?.string?.isRequired,
-    firstNamePlaceholder: PropTypes?.string?.isRequired,
-    lastName: PropTypes?.string?.isRequired,
-    lastNamePlaceholder: PropTypes?.string?.isRequired,
-    email: PropTypes?.string?.isRequired,
-    emailPlaceholder: PropTypes?.string?.isRequired,
-    phone: PropTypes?.string?.isRequired,
-    phonePlaceholder: PropTypes?.string?.isRequired,
-    password: PropTypes?.string?.isRequired,
-    passwordPlaceholder: PropTypes?.string?.isRequired,
-    confirmPassword: PropTypes?.string?.isRequired,
-    confirmPasswordPlaceholder: PropTypes?.string?.isRequired,
-    passwordMismatch: PropTypes?.string?.isRequired,
-    passwordStrength: PropTypes?.shape({
-      label: PropTypes?.string?.isRequired,
-      weak: PropTypes?.string?.isRequired,
-      fair: PropTypes?.string?.isRequired,
-      good: PropTypes?.string?.isRequired,
-      strong: PropTypes?.string?.isRequired
-    })?.isRequired
-  })?.isRequired
-};
+BasicInfoForm.propTypes = { formData: PropTypes.object, onFormDataChange: PropTypes.func, errors: PropTypes.object, language: PropTypes.string };

@@ -1,295 +1,180 @@
 'use client';
 
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Icon from '@/components/ui/AppIcon';
+import PhoneInput from '@/components/ui/PhoneInput';
+import CountrySelect from '@/components/ui/CountrySelect';
 
-export default function BusinessDetailsForm({ formData, onFormChange, translations }) {
-  const [uploadedFiles, setUploadedFiles] = useState({
-    businessLicense: null,
-    taxDocument: null
-  });
+const T = {
+  fr: {
+    businessName: 'Nom de l\'entreprise / boutique', businessType: 'Type d\'entreprise',
+    industry: 'Secteur d\'activité', employees: 'Taille de l\'entreprise',
+    businessPhone: 'Téléphone professionnel', businessCountry: 'Pays de l\'entreprise',
+    businessCity: 'Ville', businessAddress: 'Adresse professionnelle',
+    website: 'Site web (optionnel)', rccm: 'N° RCCM / Registre de commerce (optionnel)',
+    bNamePh: 'Ex: TechSupply Bénin', cityPh: 'Ex: Cotonou', addressPh: 'Quartier, rue...',
+    websitePh: 'https://votresite.com', rccmPh: 'Ex: RCCM/BJ/COT/2024/B/12345',
+    types: ['Entreprise individuelle', 'SARL', 'SA', 'SAS', 'Association', 'Autre'],
+    industries: ['Commerce & Distribution', 'Industrie & Fabrication', 'Agriculture & Alimentaire', 'Électronique & High-tech',
+      'Bâtiment & Construction', 'Textile & Mode', 'Cosmétiques & Beauté', 'Mobilier & Décoration',
+      'Informatique & Logiciels', 'Transport & Logistique', 'Santé & Pharmaceutique', 'Éducation', 'Finance', 'Autre'],
+    sizes: ['1–5 employés', '6–20 employés', '21–50 employés', '51–200 employés', '200+ employés'],
+  },
+  en: {
+    businessName: 'Business / shop name', businessType: 'Business type',
+    industry: 'Industry', employees: 'Company size',
+    businessPhone: 'Business phone', businessCountry: 'Business country',
+    businessCity: 'City', businessAddress: 'Business address',
+    website: 'Website (optional)', rccm: 'Registration number (optional)',
+    bNamePh: 'Ex: TechSupply Benin', cityPh: 'Ex: Cotonou', addressPh: 'Street, district...',
+    websitePh: 'https://yoursite.com', rccmPh: 'Ex: REG-2024-12345',
+    types: ['Sole proprietorship', 'LLC', 'Corporation', 'SAS', 'Association', 'Other'],
+    industries: ['Trade & Distribution', 'Manufacturing & Industry', 'Agriculture & Food', 'Electronics & Tech',
+      'Building & Construction', 'Textile & Fashion', 'Cosmetics & Beauty', 'Furniture & Decor',
+      'IT & Software', 'Transport & Logistics', 'Health & Pharma', 'Education', 'Finance', 'Other'],
+    sizes: ['1–5 employees', '6–20 employees', '21–50 employees', '51–200 employees', '200+ employees'],
+  },
+  es: {
+    businessName: 'Nombre de empresa / tienda', businessType: 'Tipo de empresa',
+    industry: 'Sector', employees: 'Tamaño de empresa',
+    businessPhone: 'Teléfono profesional', businessCountry: 'País de la empresa',
+    businessCity: 'Ciudad', businessAddress: 'Dirección profesional',
+    website: 'Sitio web (opcional)', rccm: 'N° de registro (opcional)',
+    bNamePh: 'Ej: TechSupply Benín', cityPh: 'Ej: Cotonou', addressPh: 'Calle, barrio...',
+    websitePh: 'https://tusitio.com', rccmPh: 'Ej: REG-2024-12345',
+    types: ['Empresa individual', 'SRL', 'SA', 'SAS', 'Asociación', 'Otro'],
+    industries: ['Comercio y Distribución', 'Industria y Fabricación', 'Agricultura y Alimentos', 'Electrónica y Tecnología',
+      'Construcción', 'Textil y Moda', 'Cosméticos y Belleza', 'Muebles y Decoración',
+      'Informática y Software', 'Transporte y Logística', 'Salud y Farmacia', 'Educación', 'Finanzas', 'Otro'],
+    sizes: ['1–5 empleados', '6–20 empleados', '21–50 empleados', '51–200 empleados', '200+ empleados'],
+  },
+  pt: {
+    businessName: 'Nome da empresa / loja', businessType: 'Tipo de empresa',
+    industry: 'Setor', employees: 'Tamanho da empresa',
+    businessPhone: 'Telefone profissional', businessCountry: 'País da empresa',
+    businessCity: 'Cidade', businessAddress: 'Endereço profissional',
+    website: 'Site (opcional)', rccm: 'N° de registro (opcional)',
+    bNamePh: 'Ex: TechSupply Benin', cityPh: 'Ex: Cotonou', addressPh: 'Rua, bairro...',
+    websitePh: 'https://seusite.com', rccmPh: 'Ex: REG-2024-12345',
+    types: ['Empresário individual', 'Ltda', 'SA', 'SAS', 'Associação', 'Outro'],
+    industries: ['Comércio e Distribuição', 'Indústria e Fabricação', 'Agricultura e Alimentos', 'Eletrônicos e Tecnologia',
+      'Construção Civil', 'Têxtil e Moda', 'Cosméticos e Beleza', 'Móveis e Decoração',
+      'TI e Software', 'Transporte e Logística', 'Saúde e Farmácia', 'Educação', 'Finanças', 'Outro'],
+    sizes: ['1–5 funcionários', '6–20 funcionários', '21–50 funcionários', '51–200 funcionários', '200+ funcionários'],
+  },
+  ar: {
+    businessName: 'اسم الشركة / المتجر', businessType: 'نوع الشركة',
+    industry: 'قطاع النشاط', employees: 'حجم الشركة',
+    businessPhone: 'هاتف العمل', businessCountry: 'بلد الشركة',
+    businessCity: 'المدينة', businessAddress: 'عنوان العمل',
+    website: 'الموقع الإلكتروني (اختياري)', rccm: 'رقم التسجيل (اختياري)',
+    bNamePh: 'مثال: تك سبلاي بنين', cityPh: 'مثال: كوتونو', addressPh: 'الشارع، الحي...',
+    websitePh: 'https://موقعك.com', rccmPh: 'مثال: REG-2024-12345',
+    types: ['مؤسسة فردية', 'ش.م.م', 'شركة مساهمة', 'SAS', 'جمعية', 'أخرى'],
+    industries: ['التجارة والتوزيع', 'الصناعة والتصنيع', 'الزراعة والأغذية', 'الإلكترونيات والتقنية',
+      'البناء والتشييد', 'الملابس والأزياء', 'مستحضرات التجميل', 'الأثاث والديكور',
+      'تكنولوجيا المعلومات', 'النقل والخدمات اللوجستية', 'الصحة والأدوية', 'التعليم', 'المالية', 'أخرى'],
+    sizes: ['1–5 موظفين', '6–20 موظفاً', '21–50 موظفاً', '51–200 موظف', '200+ موظف'],
+  },
+  zh: {
+    businessName: '公司/店铺名称', businessType: '企业类型',
+    industry: '行业', employees: '公司规模',
+    businessPhone: '商务电话', businessCountry: '企业所在国',
+    businessCity: '城市', businessAddress: '商务地址',
+    website: '网站（选填）', rccm: '注册号（选填）',
+    bNamePh: '例：TechSupply 贝宁', cityPh: '例：科托努', addressPh: '街道、区域...',
+    websitePh: 'https://yoursite.com', rccmPh: '例：REG-2024-12345',
+    types: ['个体经营', '有限责任公司', '股份有限公司', 'SAS', '协会', '其他'],
+    industries: ['贸易与分销', '制造业', '农业与食品', '电子与科技',
+      '建筑业', '纺织与时尚', '美容化妆品', '家具与装饰',
+      'IT与软件', '运输与物流', '医疗与制药', '教育', '金融', '其他'],
+    sizes: ['1–5人', '6–20人', '21–50人', '51–200人', '200人以上'],
+  },
+};
 
-  const businessCategories = [
-    'Electronics & Technology',
-    'Fashion & Apparel',
-    'Home & Garden',
-    'Industrial Equipment',
-    'Food & Beverage',
-    'Health & Beauty',
-    'Automotive',
-    'Sports & Outdoors',
-    'Office Supplies',
-    'Other'
-  ];
+export default function BusinessDetailsForm({ formData = {}, onFormDataChange, errors = {}, language = 'fr' }) {
+  const tl = T[language] || T.fr;
+  const set = (k, v) => onFormDataChange?.({ ...formData, [k]: v });
 
-  const handleFileUpload = (fileType, e) => {
-    const file = e?.target?.files?.[0];
-    if (file) {
-      setUploadedFiles(prev => ({
-        ...prev,
-        [fileType]: file?.name
-      }));
-      onFormChange(fileType, file?.name);
-    }
-  };
+  const inputCls = (err) =>
+    `w-full px-3 py-2.5 border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${err ? 'border-error' : 'border-border'}`;
+
+  const Field = ({ label, required, error, children }) => (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1">
+        {label} {required && <span className="text-error">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-error mt-1 flex items-center gap-1"><Icon name="ExclamationCircleIcon" size={12} />{error}</p>}
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{translations?.businessDetails}</h2>
-        <p className="text-muted-foreground">{translations?.provideBusinessInfo}</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.companyName} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="BuildingOfficeIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="text"
-            value={formData?.companyName || ''}
-            onChange={(e) => onFormChange('companyName', e?.target?.value)}
-            placeholder={translations?.companyNamePlaceholder}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.businessCategory} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="TagIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <select
-            value={formData?.businessCategory || ''}
-            onChange={(e) => onFormChange('businessCategory', e?.target?.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth appearance-none"
-            required
-          >
-            <option value="">{translations?.selectCategory}</option>
-            {businessCategories?.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <Icon
-            name="ChevronDownIcon"
-            size={20}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none"
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.registrationNumber} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="IdentificationIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="text"
-            value={formData?.registrationNumber || ''}
-            onChange={(e) => onFormChange('registrationNumber', e?.target?.value)}
-            placeholder={translations?.registrationNumberPlaceholder}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.businessAddress} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="MapPinIcon"
-            size={20}
-            className="absolute left-3 top-3 text-muted-foreground"
-          />
-          <textarea
-            value={formData?.businessAddress || ''}
-            onChange={(e) => onFormChange('businessAddress', e?.target?.value)}
-            placeholder={translations?.businessAddressPlaceholder}
-            rows={3}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth resize-none"
-            required
-          />
-        </div>
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {translations?.city} <span className="text-error">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData?.city || ''}
-            onChange={(e) => onFormChange('city', e?.target?.value)}
-            placeholder={translations?.cityPlaceholder}
-            className="w-full px-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
+    <div className="space-y-4">
+      <Field label={tl.businessName} required error={errors.businessName}>
+        <input value={formData.businessName || ''} onChange={e => set('businessName', e.target.value)}
+          placeholder={tl.bNamePh} className={inputCls(errors.businessName)} />
+      </Field>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {translations?.postalCode} <span className="text-error">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData?.postalCode || ''}
-            onChange={(e) => onFormChange('postalCode', e?.target?.value)}
-            placeholder={translations?.postalCodePlaceholder}
-            className="w-full px-4 py-2.5 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {translations?.country} <span className="text-error">*</span>
-        </label>
-        <div className="relative">
-          <Icon
-            name="GlobeAltIcon"
-            size={20}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          />
-          <select
-            value={formData?.country || ''}
-            onChange={(e) => onFormChange('country', e?.target?.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-smooth appearance-none"
-            required
-          >
-            <option value="">{translations?.selectCountry}</option>
-            <option value="Canada">Canada</option>
-            <option value="France">France</option>
-            <option value="United States">United States</option>
-            <option value="Belgium">Belgium</option>
-            <option value="Switzerland">Switzerland</option>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={tl.businessType} required error={errors.businessType}>
+          <select value={formData.businessType || ''} onChange={e => set('businessType', e.target.value)}
+            className={inputCls(errors.businessType)}>
+            <option value="">—</option>
+            {tl.types.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <Icon
-            name="ChevronDownIcon"
-            size={20}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none"
-          />
+        </Field>
+        <Field label={tl.industry} required error={errors.industry}>
+          <select value={formData.industry || ''} onChange={e => set('industry', e.target.value)}
+            className={inputCls(errors.industry)}>
+            <option value="">—</option>
+            {tl.industries.map(i => <option key={i} value={i}>{i}</option>)}
+          </select>
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={tl.employees} error={errors.employees}>
+          <select value={formData.employees || ''} onChange={e => set('employees', e.target.value)}
+            className={inputCls(errors.employees)}>
+            <option value="">—</option>
+            {tl.sizes.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <div>
+          <PhoneInput label={tl.businessPhone} value={formData.businessPhone || ''} onChange={v => set('businessPhone', v)} />
         </div>
       </div>
-      <div className="border-t border-border pt-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">{translations?.verificationDocuments}</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              {translations?.businessLicense} <span className="text-error">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                onChange={(e) => handleFileUpload('businessLicense', e)}
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="hidden"
-                id="businessLicense"
-                required
-              />
-              <label
-                htmlFor="businessLicense"
-                className="flex items-center justify-between px-4 py-3 border-2 border-dashed border-border rounded-md bg-muted hover:bg-muted/80 cursor-pointer transition-smooth"
-              >
-                <div className="flex items-center space-x-3">
-                  <Icon name="DocumentIcon" size={20} className="text-muted-foreground" />
-                  <span className="text-sm text-foreground">
-                    {uploadedFiles?.businessLicense || translations?.uploadDocument}
-                  </span>
-                </div>
-                <Icon name="ArrowUpTrayIcon" size={20} className="text-muted-foreground" />
-              </label>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{translations?.acceptedFormats}</p>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              {translations?.taxDocument} <span className="text-error">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                onChange={(e) => handleFileUpload('taxDocument', e)}
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="hidden"
-                id="taxDocument"
-                required
-              />
-              <label
-                htmlFor="taxDocument"
-                className="flex items-center justify-between px-4 py-3 border-2 border-dashed border-border rounded-md bg-muted hover:bg-muted/80 cursor-pointer transition-smooth"
-              >
-                <div className="flex items-center space-x-3">
-                  <Icon name="DocumentIcon" size={20} className="text-muted-foreground" />
-                  <span className="text-sm text-foreground">
-                    {uploadedFiles?.taxDocument || translations?.uploadDocument}
-                  </span>
-                </div>
-                <Icon name="ArrowUpTrayIcon" size={20} className="text-muted-foreground" />
-              </label>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{translations?.acceptedFormats}</p>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <CountrySelect label={tl.businessCountry} required value={formData.businessCountry || ''}
+            onChange={v => set('businessCountry', v)} />
+          {errors.businessCountry && <p className="text-xs text-error mt-1">{errors.businessCountry}</p>}
         </div>
+        <Field label={tl.businessCity} error={errors.businessCity}>
+          <input value={formData.businessCity || ''} onChange={e => set('businessCity', e.target.value)}
+            placeholder={tl.cityPh} className={inputCls(errors.businessCity)} />
+        </Field>
+      </div>
+
+      <Field label={tl.businessAddress} error={errors.businessAddress}>
+        <input value={formData.businessAddress || ''} onChange={e => set('businessAddress', e.target.value)}
+          placeholder={tl.addressPh} className={inputCls(errors.businessAddress)} />
+      </Field>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label={tl.website} error={errors.website}>
+          <input type="url" value={formData.website || ''} onChange={e => set('website', e.target.value)}
+            placeholder={tl.websitePh} className={inputCls(errors.website)} />
+        </Field>
+        <Field label={tl.rccm} error={errors.rccm}>
+          <input value={formData.rccm || ''} onChange={e => set('rccm', e.target.value)}
+            placeholder={tl.rccmPh} className={inputCls(errors.rccm)} />
+        </Field>
       </div>
     </div>
   );
 }
 
-BusinessDetailsForm.propTypes = {
-  formData: PropTypes?.shape({
-    companyName: PropTypes?.string,
-    businessCategory: PropTypes?.string,
-    registrationNumber: PropTypes?.string,
-    businessAddress: PropTypes?.string,
-    city: PropTypes?.string,
-    postalCode: PropTypes?.string,
-    country: PropTypes?.string,
-    businessLicense: PropTypes?.string,
-    taxDocument: PropTypes?.string
-  })?.isRequired,
-  onFormChange: PropTypes?.func?.isRequired,
-  translations: PropTypes?.shape({
-    businessDetails: PropTypes?.string?.isRequired,
-    provideBusinessInfo: PropTypes?.string?.isRequired,
-    companyName: PropTypes?.string?.isRequired,
-    companyNamePlaceholder: PropTypes?.string?.isRequired,
-    businessCategory: PropTypes?.string?.isRequired,
-    selectCategory: PropTypes?.string?.isRequired,
-    registrationNumber: PropTypes?.string?.isRequired,
-    registrationNumberPlaceholder: PropTypes?.string?.isRequired,
-    businessAddress: PropTypes?.string?.isRequired,
-    businessAddressPlaceholder: PropTypes?.string?.isRequired,
-    city: PropTypes?.string?.isRequired,
-    cityPlaceholder: PropTypes?.string?.isRequired,
-    postalCode: PropTypes?.string?.isRequired,
-    postalCodePlaceholder: PropTypes?.string?.isRequired,
-    country: PropTypes?.string?.isRequired,
-    selectCountry: PropTypes?.string?.isRequired,
-    verificationDocuments: PropTypes?.string?.isRequired,
-    businessLicense: PropTypes?.string?.isRequired,
-    taxDocument: PropTypes?.string?.isRequired,
-    uploadDocument: PropTypes?.string?.isRequired,
-    acceptedFormats: PropTypes?.string?.isRequired
-  })?.isRequired
-};
+BusinessDetailsForm.propTypes = { formData: PropTypes.object, onFormDataChange: PropTypes.func, errors: PropTypes.object, language: PropTypes.string };
